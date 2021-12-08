@@ -21,18 +21,26 @@ object WordCountActor {
   }
 }
 
+object Person {
+  def apply(name: String): Behavior[String] = Behaviors.receive { (_, _) =>
+    println(s"Hi, my name is $name")
+    Behaviors.same
+  }
+}
+
 //#greeter-main
 object GreeterMain {
-
   final case class SayHello()
 
   def apply(): Behavior[SayHello] =
     Behaviors.setup { context =>
       val wordCount = context.spawn(WordCountActor(), "wordCount")
+      val person = context.spawn(Person("Bob"), "person")
 
-      Behaviors.receiveMessage { message =>
+      Behaviors.receiveMessage { _ =>
         //#create-actors
         wordCount ! WordCountActor.CountWords("I am learning Akka and it's pretty damn cool!")
+        person ! "hi"
         Behaviors.same
       }
     }
