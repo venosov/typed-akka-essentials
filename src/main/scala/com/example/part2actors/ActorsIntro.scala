@@ -1,10 +1,8 @@
-//#full-example
-package com.example
-
+package com.example.part2actors
 
 import akka.actor.typed.{ActorSystem, Behavior}
 import akka.actor.typed.scaladsl.Behaviors
-import com.example.GreeterMain.SayHello
+import com.example.part2actors.GreeterMain.SayHello
 
 object WordCountActor {
   // internal data
@@ -46,8 +44,9 @@ object GreeterMain {
     }
 }
 
-object AkkaQuickstart extends App {
-  val greeterMain: ActorSystem[GreeterMain.SayHello] = ActorSystem(GreeterMain(), "AkkaQuickStart")
+object ActorsIntro extends App {
+  val greeterMain: ActorSystem[GreeterMain.SayHello] = ActorSystem(GreeterMain(), "ActorsIntro")
 
   greeterMain ! SayHello()
 }
+
