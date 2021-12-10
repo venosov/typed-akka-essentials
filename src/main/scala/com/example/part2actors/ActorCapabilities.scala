@@ -36,6 +36,27 @@ object SimpleActor {
   }
 }
 
+object Counter {
+  var count = 0
+
+  sealed trait Command
+  final case class Increment() extends Command
+  final case class Decrement() extends Command
+  final case class Print() extends Command
+
+  def apply(): Behavior[Command] = Behaviors.receiveMessage {
+    case Increment() =>
+      count += 1
+      Behaviors.same
+    case Decrement() =>
+      count -= 1
+      Behaviors.same
+    case Print() =>
+      println(s"[counter] My current count is $count")
+      Behaviors.same
+  }
+}
+
 object ActorCapabilitiesMain {
   final case class SayHello()
 
@@ -44,14 +65,20 @@ object ActorCapabilitiesMain {
       val simpleActor = context.spawn(SimpleActor(), "simpleActor")
       val alice = context.spawn(SimpleActor(), "alice")
       val bob = context.spawn(SimpleActor(), "bob")
+      val counter = context.spawn(Counter(), "myCounter")
 
       Behaviors.receiveMessage { _ =>
-        //#create-actors
         simpleActor ! SimpleActor.Message("hello, actor")
         simpleActor ! SimpleActor.Number(42)
         simpleActor ! SimpleActor.SpecialMessage("some special content")
         simpleActor ! SimpleActor.SendMessageToYourself("I am an actor and I am proud of it")
         simpleActor ! SimpleActor.SayHiTo(alice, bob)
+
+        import Counter._
+        (1 to 5).foreach(_ => counter ! Increment())
+        (1 to 3).foreach(_ => counter ! Decrement())
+        counter ! Print()
+
         Behaviors.same
       }
     }
