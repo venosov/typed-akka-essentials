@@ -12,7 +12,7 @@ object StatelessFussyKid {
 
   sealed trait Command
   final case class Food(food: String) extends Command
-  final case class Ask(message: String, replyTo: ActorRef[MomMessage]) extends Command // do you want to play?
+  final case class Ask(message: String, replyTo: ActorRef[KidAnswer]) extends Command // do you want to play?
 
   def apply(): Behavior[Command] = happyReceive()
 
@@ -39,8 +39,9 @@ object Mom {
   import StatelessFussyKid._
   sealed trait MomMessage
   final case class MomStart(kidRef: ActorRef[Command]) extends MomMessage
-  case object KidAccept extends MomMessage
-  case object KidReject extends MomMessage
+  sealed trait KidAnswer extends MomMessage
+  case object KidAccept extends KidAnswer()
+  case object KidReject extends KidAnswer()
 
   def apply(): Behavior[MomMessage] = Behaviors.receive { (actorContext, message) =>
     message match {
