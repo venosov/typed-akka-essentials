@@ -1,8 +1,7 @@
-package com.example.part2actors
+package com.example.part2actors.changingactorbehavior
 
-import akka.actor.typed.{ActorSystem, Behavior}
 import akka.actor.typed.scaladsl.Behaviors
-import akka.actor.typed.ActorRef
+import akka.actor.typed.{ActorRef, ActorSystem, Behavior}
 
 object StatelessFussyKid {
   import Mom._
@@ -60,20 +59,53 @@ object Mom {
   }
 }
 
+object Counter {
+  sealed trait Command
+
+  final case class Increment() extends Command
+
+  final case class Decrement() extends Command
+
+  final case class Print() extends Command
+
+  def apply(): Behavior[Command] = countReceive(0)
+
+  private def countReceive(currentCount: Int): Behavior[Command] =
+    Behaviors.receiveMessage {
+      case Increment() =>
+        println(s"[countReceive($currentCount)] incrementing")
+        countReceive(currentCount + 1)
+      case Decrement() =>
+        println(s"[countReceive($currentCount)] decrementing")
+        countReceive(currentCount - 1)
+      case Print() =>
+        println(s"[counter] My current count is $currentCount")
+        Behaviors.same
+    }
+}
+
 object ChangingActorBehaviorMain {
   final case class SayHello()
 
   def apply(): Behavior[SayHello] =
-    Behaviors.setup { context =>
+  Behaviors.setup { context =>
       val statelessFussyKid = context.spawn(StatelessFussyKid(), "statelessFussyKid")
       val mom = context.spawn(Mom(), "mom")
+      val counter = context.spawn(Counter(), "myCounter")
 
       Behaviors.receiveMessage { _ =>
         mom ! Mom.MomStart(statelessFussyKid)
+
+        import Counter._
+        (1 to 5).foreach(_ => counter ! Increment())
+        (1 to 3).foreach(_ => counter ! Decrement())
+        counter ! Print()
+
         Behaviors.same
       }
     }
 }
+
 
 object ChangingActorBehavior extends App {
   val changingActorBehaviorMain : ActorSystem[ChangingActorBehaviorMain.SayHello] = ActorSystem(ChangingActorBehaviorMain(), "ChangingActorBehavior")
