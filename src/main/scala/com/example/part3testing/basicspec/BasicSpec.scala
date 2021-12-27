@@ -7,13 +7,20 @@ import org.scalatest.BeforeAndAfterAll
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 
-object SimpleActor {
-  case class Ping(text: String, replyTo: ActorRef[String])
+import scala.concurrent.duration._
+import scala.language.postfixOps
 
+case class Ping(text: String, replyTo: ActorRef[String])
+
+object SimpleActor {
   def apply(): Behavior[Ping] = Behaviors.receiveMessage { message =>
       message.replyTo ! message.text
       Behaviors.same
   }
+}
+
+object Blackhole {
+  def apply(): Behavior[Ping] = Behaviors.empty
 }
 
 class BasicSpec
@@ -24,7 +31,7 @@ class BasicSpec
 
   import SimpleActor._
 
-  "A simple actor" must {
+  "A simple actor" should {
     "send back the same message" in {
       val echoActor = testKit.spawn(SimpleActor(), "ping")
       val probe = testKit.createTestProbe[String]()
@@ -33,6 +40,17 @@ class BasicSpec
       echoActor ! Ping(text, probe.ref)
 
       probe.expectMessage(text)
+    }
+  }
+
+  "A blackhole actor" should {
+    "not send back any messages" in {
+      val blackhole = testKit.spawn(Blackhole(), "blackhole")
+      val probe = testKit.createTestProbe[String]()
+      val text = "hello, test"
+      blackhole ! Ping(text, probe.ref)
+
+      probe.expectNoMessage(1 second)
     }
   }
 
