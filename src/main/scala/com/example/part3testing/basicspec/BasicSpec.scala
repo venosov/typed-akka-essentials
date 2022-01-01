@@ -27,9 +27,7 @@ class BasicSpec
   extends AnyWordSpec
     with BeforeAndAfterAll
     with Matchers {
-  val testKit = ActorTestKit()
-
-  import SimpleActor._
+  private val testKit = ActorTestKit()
 
   "A simple actor" should {
     "send back the same message" in {
