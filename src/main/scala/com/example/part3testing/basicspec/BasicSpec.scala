@@ -41,6 +41,17 @@ class BasicSpec
 
       probe.expectMessage(text)
     }
+
+    "receiveN" in {
+      val echoActor = testKit.spawn(SimpleActor(), "ping")
+      val probe = testKit.createTestProbe[String]()
+      val text = "hello"
+
+      echoActor ! Ping(text, probe.ref)
+      echoActor ! Ping(text, probe.ref)
+
+      probe.receiveMessages(2)
+    }
   }
 
   "A blackhole actor" should {
